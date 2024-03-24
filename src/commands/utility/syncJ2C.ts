@@ -24,7 +24,7 @@ export default class SyncJ2CChannels extends Command {
       cooldown: 5,
       dm_permission: false,
       dev: false,
-      deprecated: false,
+      deprecated: true,
     });
   }
 

@@ -23,7 +23,7 @@ export default class SyncTempChannels extends Command {
       default_member_permissions: PermissionsBitField.Flags.ManageGuild,
       cooldown: 5,
       dm_permission: false,
-      dev: false,
+      dev: true,
     });
   }
 

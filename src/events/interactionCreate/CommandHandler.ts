@@ -7,14 +7,13 @@ import {
 import CustomClient from "../../base/classes/CustomClient";
 import Event from "../../base/classes/Event";
 import Command from "../../base/classes/Command";
-import { developerUserIds } from "../../data/config";
+import { developerUserIds } from "../../config/config";
 
 /**
  * Represents an event handler for processing chat input command interactions.
  */
 
 export default class CommandHandler extends Event {
-  
   /**
    * Creates an instance of CommandHandler.
    * @param {CustomClient} client - The custom client instance.

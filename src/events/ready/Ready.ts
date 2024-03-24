@@ -5,11 +5,12 @@ import {
   Routes,
   TextChannel,
   ChannelType,
+  EmbedBuilder,
 } from "discord.js";
 import CustomClient from "../../base/classes/CustomClient";
 import Event from "../../base/classes/Event";
 import Command from "../../base/classes/Command";
-import { discordClientId, token } from "../../data/config";
+import { discordClientId, token } from "../../config/config";
 import { initializeDatabaseWithGuildsAndJ2CChannels } from "../../base/functions/initializeDatabase";
 
 export default class Ready extends Event {
@@ -29,10 +30,10 @@ export default class Ready extends Event {
     console.log(`${this.client.user?.tag} is now ready and operational.`);
 
     // Initialize database with guilds and J2C channels information
-    await initializeDatabaseWithGuildsAndJ2CChannels(this.client);
+    // await initializeDatabaseWithGuildsAndJ2CChannels(this.client);
 
     // Notify 'server-logs' channel in each guild (if exists) about the bot startup
-    this.client.guilds.cache.forEach(async (guild) => {
+    for (const [guildId, guild] of this.client.guilds.cache) {
       try {
         const channels = await guild.channels.fetch();
 
@@ -44,14 +45,21 @@ export default class Ready extends Event {
         ) as TextChannel | undefined;
 
         // If a 'server-logs' channel is found, send a message about bot readiness
-        logChannel?.send(`${this.client.user?.tag} is now online! 🚀`);
+        // If a 'server-logs' channel is found, send a message about bot readiness
+        const onlineEmbed = new EmbedBuilder()
+          .setColor("#00ff08")
+          .setTitle(" ⚡   TempyJr   ⚡")
+          .setDescription(`${this.client.user} is now online! 🚀`)
+          .setTimestamp();
+
+        logChannel?.send({ embeds: [onlineEmbed] });
       } catch (error) {
         console.error(
           `Error fetching channels for guild "${guild.name}":`,
           error
         );
       }
-    });
+    }
 
     // Update global commands
     const rest = new REST().setToken(token!);

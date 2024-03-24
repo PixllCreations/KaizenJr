@@ -20,7 +20,7 @@ export default class SyncLogChannel extends Command {
       cooldown: 5,
       dm_permission: false,
       dev: false,
-      deprecated: false,
+      deprecated: true,
     });
   }
 

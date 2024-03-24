@@ -1,10 +1,11 @@
 import { Client, Collection, GatewayIntentBits } from "discord.js";
 import ICustomClient from "../interfaces/ICustomClient";
-import { token, mongoDbUri } from "../../data/config";
+import { token, mongoDbUri } from "../../config/config";
 import Handler from "./Handler";
 import Command from "./Command";
 import SubCommand from "./SubCommand";
 import { connect } from "mongoose";
+import redisClient from "../../config/redisClient";
 
 /**
  * Custom Discord client class that extends the default Discord.js client.
@@ -15,6 +16,7 @@ export default class CustomClient extends Client implements ICustomClient {
   commands: Collection<string, Command>;
   subCommands: Collection<string, SubCommand>;
   cooldowns: Collection<string, Collection<string, number>>;
+  public redisClient = redisClient;
 
   /**
    * Creates an instance of CustomClient.
