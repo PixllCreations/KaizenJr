@@ -1,9 +1,7 @@
 import { VoiceState, VoiceChannel, TextChannel } from "discord.js";
 import GuildInformation from "../../base/schemas/GuildInformation";
-import { deleteChannelIfEmpty } from "./deleteEmptyChannel";
 import CustomClient from "../../base/classes/CustomClient";
-import { logMessage } from "../../base/functions/logMessage";
-import { findCbopRole } from "../../base/functions/findCbopRole";
+import { deleteChannelIfEmpty } from "./deleteEmptyChannel";
 
 /**
  * Handles the logic when a user leaves a voice channel, specifically checking if a temporary channel should be deleted.
@@ -33,20 +31,6 @@ export const handleLeave = async (
   });
   if (!guildDoc || !guildDoc.logChannelId) {
     console.log("Guild document not found, unable to update the database.");
-    if (oldState.guild) {
-      const cbopRoleMention = await findCbopRole(oldState.guild);
-      await logMessage(
-        oldState.guild,
-        client,
-        `Guild document not found. Unable to process leave events properly.`,
-        "Error",
-        undefined,
-        undefined,
-        undefined,
-        undefined,
-        cbopRoleMention
-      );
-    }
     return;
   }
 
@@ -77,25 +61,6 @@ export const handleLeave = async (
           ),
         deleteDelay
       );
-
-      // Log the initiation of the deletion timer for the temporary channel, if a log channel is specified
-      const logChannelId = guildDoc.logChannelId;
-      if (logChannelId) {
-        const logChannel = oldState.guild.channels.cache.get(
-          logChannelId
-        ) as TextChannel;
-        if (logChannel && !tempChannel.manualDeletion) {
-          logMessage(
-            oldState.guild,
-            client,
-            `A deletion timer has been started for the empty temporary channel.`,
-            "Timer",
-            undefined,
-            channel.name,
-            channel.id
-          ).catch(console.error); // Handle potential errors gracefully
-        }
-      }
     }
   });
 };

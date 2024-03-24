@@ -1,7 +1,7 @@
 import { VoiceChannel, TextChannel, inlineCode } from "discord.js";
 import GuildInformation from "../../base/schemas/GuildInformation";
 import CustomClient from "../../base/classes/CustomClient";
-import { logMessage } from "../../base/functions/logMessage";
+import { logMessage } from "../../base/functions/sendEmbed";
 import { findCbopRole } from "../../base/functions/findCbopRole";
 
 /**
@@ -37,17 +37,6 @@ export async function deleteChannelIfEmpty(
     if (!guildDoc) {
       console.log(
         "Guild document not found during deletion check. Aborting..."
-      );
-      await logMessage(
-        guild,
-        client,
-        `Guild document not found during deletion check. Aborting...`,
-        "Error",
-        undefined,
-        channelName,
-        channelId,
-        undefined,
-        cbopRoleMention
       );
       return;
     }
@@ -92,18 +81,6 @@ export async function deleteChannelIfEmpty(
         const logChannel = (await guild.channels.fetch(
           guildDoc.logChannelId
         )) as TextChannel;
-
-        logMessage(
-          guild,
-          client,
-          `The temporary channel has been deleted due to inactivity in ${inlineCode(
-            `${guildDoc.guildName}`
-          )}.`,
-          "Timed Delete",
-          undefined,
-          channel.name,
-          channelId
-        ).catch(console.error);
       }
     } else {
       console.log(
@@ -117,16 +94,5 @@ export async function deleteChannelIfEmpty(
     console.log("Guild document updated after checking for deletion.");
   } catch (error) {
     console.error("Error occurred during deletion check:", error);
-    await logMessage(
-      guild,
-      client,
-      `Error occurred during deletion check: ${inlineCode(`${error}`)}`,
-      "Error",
-      undefined,
-      channelName,
-      channelId,
-      undefined,
-      cbopRoleMention
-    );
   }
 }

@@ -1,0 +1,23 @@
+[
+  {
+    "name": "Atlantic",
+    "value": "atlantic"
+  },
+  {
+    "name": "Central",
+    "value": "central"
+  },
+  {
+    "name": "Southeast",
+    "value": "southeast"
+  },
+  {
+    "name": "Northwest",
+    "value": "northwest"
+  },
+  {
+    "name": "Pacific",
+    "value": "pacific"
+  },
+  { "name": "Southwest", "value": "southwest" }
+]

@@ -6,9 +6,8 @@ import {
 } from "discord.js";
 import CustomClient from "../../base/classes/CustomClient";
 import GuildInformation from "../../base/schemas/GuildInformation";
-import { sendInteractiveDashboard } from "../DashboardManager/sendDashboard";
 import { hasPermissions } from "../../base/functions/hasPermissions";
-import { logMessage } from "../../base/functions/logMessage";
+import { logMessage } from "../../base/functions/sendEmbed";
 import { findCbopRole } from "../../base/functions/findCbopRole";
 
 /**
@@ -53,13 +52,6 @@ export const handleJoin = async (
         `Moving ${newState.member?.displayName} to cloned channel: ${clonedChannel.name}`
       );
       await newState.member?.voice.setChannel(clonedChannel);
-
-      // Send an interactive dashboard to the temporary channel for channel management
-      await sendInteractiveDashboard(
-        clonedChannel,
-        newState.member?.id ?? "",
-        client
-      );
 
       // Update or create a guild document to record the existence of the new temporary channel
       let guildDoc = await GuildInformation.findOne({
@@ -112,19 +104,6 @@ export const handleJoin = async (
       );
       // Log the creation of the new temporary channel in the server's log channel if specified
       if (guildDoc.logChannelId && newState.guild) {
-        await logMessage(
-          newState.guild,
-          client,
-          `A new temporary channel has been created in ${inlineCode(
-            `${guildDoc.guildName}`
-          )}.`,
-          "Create",
-          newState.member?.user.id,
-          tempChannelData.tempChannelName,
-          tempChannelData.tempChannelId,
-          undefined,
-          undefined
-        );
       }
     } catch (error) {
       console.error("Failed to clone channel or move user:", error);
@@ -133,40 +112,6 @@ export const handleJoin = async (
         console.log(
           `Missing Permissions in ${inlineCode(`${newState.guild?.name}`)}.`
         );
-        if (newState.guild) {
-          await logMessage(
-            newState.guild,
-            client,
-            `<@${
-              client.user?.id
-            }> lacks permission to manage channels in ${inlineCode(
-              `${newState.guild.name}`
-            )}.`,
-            "Error",
-            undefined,
-            newState.channel?.name,
-            newState.channel?.id,
-            undefined,
-            cbopRoleMention
-          );
-        }
-      } else {
-        // Handle other errors or forward a generic error message
-        if (newState.guild) {
-          await logMessage(
-            newState.guild,
-            client,
-            `An error occurred while cloning channel or moving member: ${inlineCode(
-              `${error}`
-            )}`,
-            "Error",
-            undefined,
-            undefined,
-            undefined,
-            undefined,
-            cbopRoleMention
-          );
-        }
       }
     }
   }

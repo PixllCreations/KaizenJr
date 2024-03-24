@@ -2,7 +2,7 @@ import { ChatInputCommandInteraction, PermissionsBitField } from "discord.js";
 import Command from "../../base/classes/Command";
 import CustomClient from "../../base/classes/CustomClient";
 import Category from "../../base/enums/Category";
-import { developerUserIds } from "../../data/config";
+import { developerUserIds } from "../../config/config";
 
 export default class ClearLogs extends Command {
   constructor(client: CustomClient) {
