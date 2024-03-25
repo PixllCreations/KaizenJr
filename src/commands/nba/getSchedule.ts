@@ -9,6 +9,7 @@ import CustomClient from "../../base/classes/CustomClient";
 import Category from "../../base/enums/Category";
 import { cacheTeamId } from "../../modules/nba/utils/cacheTeamId";
 import { getGames } from "../../modules/nba/endpoints";
+import IGame from "../../modules/nba/interfaces/IGame";
 
 export default class GetSchedule extends Command {
   constructor(client: CustomClient) {
@@ -28,22 +29,36 @@ export default class GetSchedule extends Command {
           type: ApplicationCommandOptionType.SubcommandGroup,
           options: [
             {
-              name: "byTeamID",
-              description: "Specify a team to filter the schedule.",
-              required: false,
-              type: ApplicationCommandOptionType.String,
-              options: [],
-            },
-            {
-              name: "byDate",
-              description:
-                "Specify a specific date (YYYY-MM-DD) to filter the schedule.",
+              name: "by_team_name",
+              description: "Filter the schedule by team name.",
               required: false,
               type: ApplicationCommandOptionType.Subcommand,
-              options: [],
+              options: [
+                {
+                  name: "name",
+                  description: "Specify a team to filter the schedule by.",
+                  required: false,
+                  type: ApplicationCommandOptionType.String,
+                },
+              ],
             },
             {
-              name: "byDates",
+              name: "by_date",
+              description: "Filter the schedule by a single date (YYYY-MM-DD).",
+              required: false,
+              type: ApplicationCommandOptionType.Subcommand,
+              options: [
+                {
+                  name: "date",
+                  description:
+                    "Specify a specific date (YYYY-MM-DD) to filter the schedule.",
+                  required: false,
+                  type: ApplicationCommandOptionType.String,
+                },
+              ],
+            },
+            {
+              name: "by_dates",
               description:
                 "Specify a start and end date (YYYY-MM-DD) to filter the schedule",
               required: false,
@@ -53,14 +68,14 @@ export default class GetSchedule extends Command {
                   name: "start",
                   description:
                     "Provide the starting date you'd like to fetch games for.",
-                  required: true,
+                  required: false,
                   type: ApplicationCommandOptionType.String,
                 },
                 {
                   name: "end",
                   description:
                     "Provide the ending date you'd like to fetch games for. ",
-                  required: true,
+                  required: false,
                   type: ApplicationCommandOptionType.String,
                 },
               ],
@@ -73,20 +88,17 @@ export default class GetSchedule extends Command {
 
   async Execute(interaction: ChatInputCommandInteraction): Promise<void> {
     await interaction.deferReply({ ephemeral: false });
-    const teamName = interaction.options.getString("team");
+    const teamName = interaction.options.getString("name");
     let date = interaction.options.getString("date");
-    const datesOption =
-      interaction.options.getSubcommandGroup(false) === "dates";
-
+    const datesOption = interaction.options.getSubcommandGroup(false) === "schedule";
+  
     let teamId;
     if (teamName) {
       let fetchedTeamId = await cacheTeamId(teamName);
       if (fetchedTeamId) {
         teamId = parseInt(fetchedTeamId, 10);
         if (isNaN(teamId)) {
-          await interaction.editReply(
-            `Team not found or invalid ID: ${teamName}`
-          );
+          await interaction.editReply(`Team not found or invalid ID: ${teamName}`);
           return;
         }
       } else {
@@ -94,15 +106,13 @@ export default class GetSchedule extends Command {
         return;
       }
     }
-
-    // Logic for handling date ranges if the 'dates' subcommand is used
+  
     let startDate, endDate;
     if (datesOption) {
-      startDate = interaction.options.getString("start", true); // 'true' for required options
+      startDate = interaction.options.getString("start", true);
       endDate = interaction.options.getString("end", true);
     }
-
-    // Logic for defaulting to next 7 days if no specific date or range is provided
+  
     if (!date && !datesOption) {
       const today = new Date();
       date = today.toISOString().split("T")[0];
@@ -110,24 +120,31 @@ export default class GetSchedule extends Command {
       endDateObj.setDate(today.getDate() + 7);
       endDate = endDateObj.toISOString().split("T")[0];
     }
-
-    // Preparing options for the schedule fetching function
+  
     const options = {
       ...(teamId !== undefined && { team_ids: [teamId] }),
       ...(date && { dates: [date] }),
       ...(startDate && endDate && { start_date: startDate, end_date: endDate }),
     };
-
-    const schedule = await getGames(options); // Adjust this to your actual function that fetches the schedule
-
-    // Construct and send the embed with fetched data
+  
+    const schedule = await getGames(options);
+    const games = schedule.data;
+  
     const embed = new EmbedBuilder()
       .setColor(0x0099ff)
       .setTitle("NBA Schedule")
-      .setDescription(
-        teamName ? `Schedule for ${teamName}` : "Upcoming NBA games"
-      );
-
+      .setDescription(teamName ? `Schedule for ${teamName}` : "Upcoming NBA games");
+  
+    // Add each game to the embed as a field
+    games.forEach((game: IGame) => {
+      const gameDate = new Date(game.date).toLocaleDateString("en-US");
+      const gameTime = new Date(game.date).toLocaleTimeString("en-US", { hour: '2-digit', minute: '2-digit' });
+      const gameTitle = `${game.home_team.name} vs ${game.visitor_team.name}`;
+      const gameDetail = `${gameDate} at ${gameTime}`;
+  
+      embed.addFields({ name: gameTitle, value: gameDetail, inline: true });
+    });
+  
     await interaction.editReply({ embeds: [embed] });
   }
-}
+}  

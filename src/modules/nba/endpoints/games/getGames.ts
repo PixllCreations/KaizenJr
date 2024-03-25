@@ -17,7 +17,6 @@ export async function getGames(options?: IGamesOptions) {
   }
 
   try {
-    // Use axios.get with URL and parameters
     const response = await axios.get(baseUrl, { headers: bdlAuth, params });
     return response.data;
   } catch (error) {
