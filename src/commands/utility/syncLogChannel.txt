@@ -3,6 +3,7 @@ import Command from "../../base/classes/Command";
 import CustomClient from "../../base/classes/CustomClient";
 import Category from "../../base/enums/Category";
 import { syncLogChannels } from "../../base/functions/syncLogChannel";
+import CommandTypes from "../../base/enums/CommandType";
 
 /**
  * Command class for syncing the server logs channel for each guild.
@@ -14,6 +15,7 @@ export default class SyncLogChannel extends Command {
     super(client, {
       name: "synclogs",
       description: "Sync the server logs channel for each guild.",
+      type: CommandTypes.Command,
       category: Category.Utility,
       options: [],
       default_member_permissions: PermissionsBitField.Flags.ManageGuild,

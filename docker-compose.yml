@@ -1,0 +1,24 @@
+version: "3.8"
+services:
+  bot:
+    build:
+      context: .
+      dockerfile: Docker/Dockerfile.dev
+    container_name: kaizen
+    depends_on:
+      - redis
+    environment:
+      - DISCORD_TOKEN=${DISCORD_TOKEN}
+      - DISCORD_CLIENT_ID=${DISCORD_CLIENT_ID}
+      - DEVELOPER_USER_IDS=${DEVELOPER_USER_IDS}
+      - MONGODB_URI=${MONGODB_URI}
+      - BDL_API_KEY=${BDL_API_KEY}
+      - REDIS_HOST=${REDIS_HOST}
+      - REDIS_PORT=${REDIS_PORT}
+      - SPORTS_DB_AUTH=${SPORTS_DB_AUTH}
+
+  redis:
+    image: redis:alpine
+    container_name: redis_server
+    ports:
+      - "6379:6379"

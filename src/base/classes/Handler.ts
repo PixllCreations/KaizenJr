@@ -5,6 +5,7 @@ import CustomClient from "./CustomClient";
 import Event from "./Event";
 import Command from "./Command";
 import SubCommand from "./SubCommand";
+import CommandTypes from "../enums/CommandType";
 
 /**
  * Class responsible for loading and handling events, commands, and subcommands.
@@ -63,23 +64,24 @@ export default class Handler implements IHandler {
       path.resolve(filePath)
     );
 
-    files.map(async (file: string) => {
-      const command: Command | SubCommand = new (await import(file)).default(
-        this.client
-      );
-
-      if (!command.name) {
-        delete require.cache[require.resolve(file)];
-        console.log(`${file.split("/").pop()} does not have a name.`);
+    files.forEach(async (file) => {
+      const commandModule = await import(file);
+      if (!commandModule.default || !commandModule.default.name) {
+        console.error(`The command in ${file} does not export correctly.`);
         return;
       }
 
-      if (file.split("/").pop()?.split(".")[2]) {
+      const command = new commandModule.default(this.client);
+      if (command.type === CommandTypes.Command) {
+        this.client.commands.set(command.name, command);
+      } else if (
+        command.type === CommandTypes.SubCommand ||
+        command.type === CommandTypes.SubCommandGroup
+      ) {
         this.client.subCommands.set(command.name, command);
       } else {
-        this.client.commands.set(command.name, command as Command);
+        console.error(`Unknown command type for command ${command.name}`);
       }
-
       delete require.cache[require.resolve(file)];
     });
   }

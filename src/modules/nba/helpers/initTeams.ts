@@ -1,4 +1,4 @@
-import { getTeams } from "../endpoints";
+import { getTeams } from "../data/BDL/endpoints";
 import Team from "../models/Team";
 
 /**

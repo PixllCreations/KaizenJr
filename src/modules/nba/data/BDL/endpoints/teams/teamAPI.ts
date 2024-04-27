@@ -1,6 +1,6 @@
 import axios from "axios";
-import { ITeam, ITeamApiResponse } from "../../interfaces/ITeam";
-import { bdlAuth } from "../../../../config/config";
+import { ITeam, ITeamApiResponse } from "../../../../interfaces/ITeam";
+import { bdlAuth } from "../../../../../../config/config";
 
 const baseUrl = "https://api.balldontlie.io/v1/teams";
 

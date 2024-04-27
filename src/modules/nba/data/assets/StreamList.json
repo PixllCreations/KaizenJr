@@ -1,0 +1,26 @@
+[
+  {
+    "name": "NBA League Pass",
+    "displayName": "NBA League Pass",
+    "emote": "<:NBA_TV:1231724979217764414>",
+    "link": "https://www.nba.com/watch/nba-tv"
+  },
+  {
+    "name": "ESPN US",
+    "displayName": "ESPN",
+    "emote": "<:espn:1231724916748062720>",
+    "link": "https://www.espn.com/watch/"
+  },
+  {
+    "name": "TNT",
+    "displayName": "TNT",
+    "emote": "<:TNT_TV_Channel:1231726850909405235>",
+    "link": "https://www.tntdrama.com/"
+  },
+  {
+    "name": "ABC",
+    "displayName": "ABC",
+    "emote": "<:abcLogo:1231729624141271040>",
+    "link": "https://abc.com/watch-live"
+  }
+]

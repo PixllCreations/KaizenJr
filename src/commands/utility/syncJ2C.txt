@@ -7,6 +7,7 @@ import Command from "../../base/classes/Command";
 import CustomClient from "../../base/classes/CustomClient";
 import Category from "../../base/enums/Category";
 import { initializeDatabaseWithGuildsAndJ2CChannels } from "../../base/functions/initializeDatabase";
+import CommandTypes from "../../base/enums/CommandType";
 
 /**
  * Command class for manually refreshing J2C channels in all guilds.
@@ -18,6 +19,7 @@ export default class SyncJ2CChannels extends Command {
     super(client, {
       name: "syncj2c",
       description: "Manually refresh J2C channels in all guilds",
+      type: CommandTypes.Command,
       category: Category.Utility,
       options: [],
       default_member_permissions: PermissionsBitField.Flags.ManageGuild,

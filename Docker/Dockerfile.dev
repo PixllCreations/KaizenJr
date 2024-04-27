@@ -1,0 +1,20 @@
+# Use a Node.js base image
+FROM node:18-alpine
+
+# Set the working directory in the Docker container
+WORKDIR /app
+
+# Copy package.json and package-lock.json (or yarn.lock) to the Docker image
+COPY package.json package-lock.json* ./
+
+# Install dependencies
+RUN npm install
+
+# Copy the rest of your bot's source code to the Docker image
+COPY . .
+
+# Compile TypeScript to JavaScript
+RUN npm run build
+
+# The command to run your bot
+CMD ["node", "build/index.js"]

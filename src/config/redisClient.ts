@@ -1,7 +1,10 @@
 import Redis from "ioredis";
+import { redisHost, redisPort } from "./config";
 
 // Initialize your Redis client
 const redisClient = new Redis({
+  host: redisHost || "redis",
+  port: redisPort || 6379,
   // Your Redis config options (host, port, etc.)
 });
 

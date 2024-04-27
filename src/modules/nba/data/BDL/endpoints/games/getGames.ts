@@ -1,8 +1,9 @@
 import axios from "axios";
-import IGamesOptions from "../../interfaces/IGameOptions";
-import { bdlAuth } from "../../../../config/config";
+import cron from "node-cron";
+import IGamesOptions from "../../../../interfaces/IGameOptions";
+import { bdlAuth } from "../../../../../../config/config";
 
-const baseUrl = "http://api.balldontlie.io/v1/games";
+const baseUrl = "http://api.balldontlie.io/v1/games/";
 
 export async function getGames(options?: IGamesOptions) {
   const params = new URLSearchParams();
