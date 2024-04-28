@@ -6,6 +6,7 @@ import {
   TextChannel,
   ChannelType,
   EmbedBuilder,
+  APIApplicationCommand,
 } from "discord.js";
 import CustomClient from "../../base/classes/CustomClient";
 import Event from "../../base/classes/Event";
@@ -24,6 +25,7 @@ import { checkGameToStart } from "../../modules/nba/helpers/checkGameStartEvents
 import { processEvent } from "../../modules/nba/helpers/processEvents";
 import { checkGameIsFinal } from "../../modules/nba/helpers/checkGameIsFinal";
 import { checkCloseGame } from "../../modules/nba/helpers/checkCloseGame";
+import { cacheTeamEmotes } from "../../modules/nba/utils/redisUtils/teamEmotes";
 
 export default class Ready extends Event {
   constructor(client: CustomClient) {
@@ -41,12 +43,14 @@ export default class Ready extends Event {
   async Execute() {
     console.log(`${this.client.user?.tag} is now ready and operational.`);
 
+    await cacheTeamEmotes(redisClient);
+
     cron.schedule("* * * * *", async () => {
       try {
-        //const date = getLocalDate();
-        const specificDate = new Date(2024, 3, 26);
-        const utcDateString = specificDate.toUTCString(); // Using toUTCString() method
-        const date = specificDate.toISOString();
+        const date = getLocalDate();
+        // const specificDate = new Date(2024, 3, 26);
+        // const utcDateString = specificDate.toUTCString(); // Using toUTCString() method
+        // const date = specificDate.toISOString();
         console.log(`Checking games for date: ${date}`);
         const games = (await getGames({ dates: [date] })).data;
         console.log(`Found ${games.length} games today.`);
@@ -55,27 +59,45 @@ export default class Ready extends Event {
             console.log(`Starting processing for game ${game.id}`);
             const gameKey = `game:${game.id}`;
             const previousGame = await redisClient.get(gameKey);
-            const previousGameState = previousGame
+            let previousGameState = previousGame
               ? JSON.parse(previousGame)
               : null;
 
-            if (previousGameState) {
-              console.log(`Processing game ${game.id}`);
-
-              const startResult = await checkGameToStart(
-                game,
-                previousGameState
-              );
+            if (!previousGameState) {
               console.log(
-                "startResult.eventId in ready.ts: ",
-                startResult.eventId
+                `No previous game state found for game ${game.id}. Saving current state.`
               );
+              await redisClient.set(gameKey, JSON.stringify(game));
+              previousGameState = game; // Update previousGameState to current game state for processing
+            }
 
-              if (startResult.occurred && startResult.eventId) {
-                await processEvent(this.client, game, startResult);
-              } else {
+            if (game.status !== "Final") {
+              try {
                 console.log(
-                  `Start event '${startResult.eventId}' already processed. Skipping.`
+                  `Processing game ${game.home_team.name}vs ${game.visitor_team.name}`
+                );
+
+                const startResult = await checkGameToStart(
+                  game,
+                  previousGameState,
+                  date
+                );
+                console.log(
+                  "startResult.eventId in ready.ts: ",
+                  startResult.eventId
+                );
+
+                if (startResult.occurred && startResult.eventId) {
+                  await processEvent(this.client, game, startResult);
+                } else {
+                  console.log(
+                    `Start event '${startResult.eventId}' already processed. Skipping.`
+                  );
+                }
+              } catch (startError) {
+                console.error(
+                  `Error proccessing start event for game ${game.id} - ${game.home_team.name} vs ${game.visitor_team.name}:`,
+                  startError
                 );
               }
             } else {
@@ -85,21 +107,28 @@ export default class Ready extends Event {
             }
 
             if (game.time !== null) {
-              const eventsResult = await checkGameEvents(game);
-              console.log(
-                "eventsResult.eventId in ready.ts: ",
-                eventsResult.eventId
-              );
-
-              if (
-                eventsResult.occurred &&
-                eventsResult.eventDescription &&
-                eventsResult.eventId
-              ) {
-                await processEvent(this.client, game, eventsResult);
-              } else {
+              try {
+                const eventsResult = await checkGameEvents(game);
                 console.log(
-                  `Game event '${eventsResult.eventId}' already processed. Skipping.`
+                  "eventsResult.eventId in ready.ts: ",
+                  eventsResult.eventId
+                );
+
+                if (
+                  eventsResult.occurred &&
+                  eventsResult.eventDescription &&
+                  eventsResult.eventId
+                ) {
+                  await processEvent(this.client, game, eventsResult);
+                } else {
+                  console.log(
+                    `Game event '${eventsResult.eventId}' already processed. Skipping.`
+                  );
+                }
+              } catch (gameEventError) {
+                console.error(
+                  `Error processing game event for game ${game.id} - ${game.home_team.name} vs ${game.visitor_team.name}:`,
+                  gameEventError
                 );
               }
             }
@@ -109,40 +138,54 @@ export default class Ready extends Event {
               game.time !== undefined &&
               game.time.includes("Q4")
             ) {
-              const closeGameResult = await checkCloseGame(game);
-              console.log(
-                "eventsResult.eventId in ready.ts: ",
-                closeGameResult.eventId
-              );
-
-              if (
-                closeGameResult.occurred &&
-                closeGameResult.eventDescription &&
-                closeGameResult.eventId
-              ) {
-                await processEvent(this.client, game, closeGameResult);
-              } else {
+              try {
+                const closeGameResult = await checkCloseGame(game);
                 console.log(
-                  `Game event '${closeGameResult.eventId}' already processed. Skipping.`
+                  "eventsResult.eventId in ready.ts: ",
+                  closeGameResult.eventId
+                );
+
+                if (
+                  closeGameResult.occurred &&
+                  closeGameResult.eventDescription &&
+                  closeGameResult.eventId
+                ) {
+                  await processEvent(this.client, game, closeGameResult);
+                } else {
+                  console.log(
+                    `Game event '${closeGameResult.eventId}' already processed. Skipping.`
+                  );
+                }
+              } catch (closeGameError) {
+                console.error(
+                  `Error processing close game event for game ${game.id} - ${game.home_team.name} vs ${game.visitor_team.name}:`,
+                  closeGameError
                 );
               }
             }
 
             if (game.status === "Final") {
-              const finalResult = await checkGameIsFinal(game);
-              console.log(
-                "finalResult.eventId in ready.ts: ",
-                finalResult.eventId
-              );
-              if (
-                finalResult.occurred &&
-                finalResult.eventDescription &&
-                finalResult.eventId
-              ) {
-                await processEvent(this.client, game, finalResult);
-              } else {
+              try {
+                const finalResult = await checkGameIsFinal(game);
                 console.log(
-                  `Game event '${finalResult.eventId}' already processed. Skipping.`
+                  "finalResult.eventId in ready.ts: ",
+                  finalResult.eventId
+                );
+                if (
+                  finalResult.occurred &&
+                  finalResult.eventDescription &&
+                  finalResult.eventId
+                ) {
+                  await processEvent(this.client, game, finalResult);
+                } else {
+                  console.log(
+                    `Game event '${finalResult.eventId}' already processed. Skipping.`
+                  );
+                }
+              } catch (gameFinalError) {
+                console.error(
+                  `Error processing game final event for game ${game.id} - ${game.home_team.name} vs ${game.visitor_team.name}:`,
+                  gameFinalError
                 );
               }
               // Update Redis with the current state
@@ -191,25 +234,27 @@ export default class Ready extends Event {
     // Update global commands
     const rest = new REST().setToken(token!);
     try {
-      const globalCommands: any = await rest.put(
-        Routes.applicationCommands(discordClientId!),
-        {
-          body: this.GetJson(
-            this.client.commands.filter((command) => !command.deprecated)
-          ),
-        }
-      );
+      // Clear all commands
+      await rest.put(Routes.applicationCommands(discordClientId!), {
+        body: [],
+      });
+      console.log("All global commands have been cleared.");
 
+      // Re-register commands if necessary
+      const commands = this.GetJson(
+        this.client.commands.filter((cmd) => !cmd.deprecated)
+      );
+      const globalCommands: APIApplicationCommand[] = (await rest.put(
+        Routes.applicationCommands(discordClientId!),
+        { body: commands }
+      )) as APIApplicationCommand[];
       console.log(
-        `Successfully loaded ${
-          (globalCommands as any[]).length
-        } global application commands.`
+        `Successfully registered ${globalCommands.length} global application commands.`
       );
     } catch (error) {
-      console.error("Failed to register global application commands:", error);
+      console.error("Failed to update global application commands:", error);
     }
   }
-
   /**
    * Prepares JSON payload of commands for registration.
    *
@@ -217,22 +262,12 @@ export default class Ready extends Event {
    */
 
   private GetJson(commands: Collection<string, Command>) {
-    const data: object[] = [];
-
-    commands.forEach((command) => {
-      data.push({
-        name: command.name,
-        description: command.description,
-        options: command.options,
-        default_member_permissions:
-          command.default_member_permissions.toString(),
-        dm_permission: command.dm_permission,
-      });
-    });
-
-    return data;
+    return commands.map((command) => ({
+      name: command.name,
+      description: command.description,
+      options: command.options,
+      default_member_permissions: command.default_member_permissions.toString(),
+      dm_permission: command.dm_permission,
+    }));
   }
-}
-function formatGameUpdateMessage(game: IGame, event: string) {
-  return `**${game.home_team.name} vs ${game.visitor_team.name}** - ${event}\n**Score:** ${game.home_team_score} - ${game.visitor_team_score}`;
 }

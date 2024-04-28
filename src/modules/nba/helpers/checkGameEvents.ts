@@ -7,6 +7,8 @@ import IResult from "../interfaces/IResult";
 import { getGameStats } from "../utils/getGameStats";
 import { findTopPerformers } from "./Impactfulness";
 import { formatPlayerStats } from "./formatBoxScores";
+import { getTeamEmote } from "../utils/redisUtils/teamEmotes";
+import redisClient from "../../../config/redisClient";
 
 export async function checkGameEvents(game: IGame): Promise<IResult> {
   const timeData = extractTimeIfUtc(game.status);
@@ -32,26 +34,32 @@ export async function checkGameEvents(game: IGame): Promise<IResult> {
     let eventDescription;
     let eventId;
 
+    const homeTeamIcon = await getTeamEmote(redisClient, game.home_team.id);
+
+    const awayTeamIcon = await getTeamEmote(redisClient, game.visitor_team.id);
+
+    const commonDescript = `${game.home_team.full_name}   ${homeTeamIcon}   vs   ${awayTeamIcon}   ${game.visitor_team.full_name}`;
+
     // Check for end of each quarter or halftime
     switch (game.time) {
       case "END Q1":
-        eventDescription = `${game.home_team.name} vs ${game.visitor_team.name} \n End of 1st Quarter \n Score: ${game.home_team_score} - ${game.visitor_team_score}`;
+        eventDescription = `${commonDescript} \n End of 1st Quarter \n Score: ${game.home_team_score} - ${game.visitor_team_score}`;
         eventId = "End of 1st Quarter";
         break;
       case "Half":
-        eventDescription = `${game.home_team.name} vs ${game.visitor_team.name} \n Halftime \n Score: ${game.home_team_score} - ${game.visitor_team_score}`;
+        eventDescription = `${commonDescript} \n Halftime \n Score: ${game.home_team_score} - ${game.visitor_team_score}`;
         eventId = "Halftime";
         break;
       case "END Q3":
-        eventDescription = `${game.home_team.name} vs ${game.visitor_team.name} \n End of 3rd Quarter \n Score: ${game.home_team_score} - ${game.visitor_team_score}`;
+        eventDescription = `${commonDescript} \n End of 3rd Quarter \n Score: ${game.home_team_score} - ${game.visitor_team_score}`;
         eventId = "End of 3rd Quarter";
         break;
       case "END Q4":
-        eventDescription = `${game.home_team.name} vs ${game.visitor_team.name} \n End of 4th Quarter. \n Final Score: ${game.home_team_score} - ${game.visitor_team_score}`;
+        eventDescription = `${commonDescript} \n End of 4th Quarter. \n Final Score: ${game.home_team_score} - ${game.visitor_team_score}`;
         eventId = "END Q4";
         break;
       case "OT":
-        eventDescription = `${game.home_team.name} vs ${game.visitor_team.name} \n End of 4th Quarter \n Score: ${game.home_team_score} - ${game.visitor_team_score}`;
+        eventDescription = `${commonDescript} \n End of 4th Quarter \n Score: ${game.home_team_score} - ${game.visitor_team_score}`;
         eventId = "End of 4th Quarter";
         break;
     }
@@ -72,13 +80,14 @@ export async function checkGameEvents(game: IGame): Promise<IResult> {
           gameStats,
           3
         );
+
         const homeTeamField: APIEmbedField = {
-          name: "Home Team",
+          name: `${homeTeamIcon}  Home Team`,
           value: topHomePerformers.map(formatPlayerStats).join("\n\n"),
           inline: true,
         };
         const visitorTeamField: APIEmbedField = {
-          name: "Visitor Team",
+          name: `${awayTeamIcon}  Visitor Team`,
           value: topVisitorPerformers.map(formatPlayerStats).join("\n\n"),
           inline: true,
         };

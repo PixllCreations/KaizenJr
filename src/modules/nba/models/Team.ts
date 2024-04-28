@@ -8,6 +8,7 @@ const teamSchema = new mongoose.Schema({
   name: String,
   full_name: String,
   abbreviation: String,
+  emote: { type: String, default: "" },
 });
 
 const Team = mongoose.model("Team", teamSchema, "nbaTeams");

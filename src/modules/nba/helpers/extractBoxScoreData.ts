@@ -7,8 +7,7 @@ export async function extractBoxScoreData(
 ) {
   // Match home team name
   const homeTeamData = liveBoxScores.data.find(
-    (game: IBoxScoreGame) =>
-      game.home_team.full_name === liveGame.home_team.full_name
+    (game: IBoxScoreGame) => game.home_team.id === liveGame.home_team.id
   );
   if (!homeTeamData) {
     console.error("Home team data not found");
@@ -20,8 +19,7 @@ export async function extractBoxScoreData(
 
   // Match visitor team name
   const visitorTeamData = liveBoxScores.data.find(
-    (game: IBoxScoreGame) =>
-      game.visitor_team.full_name === liveGame.visitor_team.full_name
+    (game: IBoxScoreGame) => game.visitor_team.id === liveGame.visitor_team.id
   );
   if (!visitorTeamData) {
     console.error("Visitor team data not found");

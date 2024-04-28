@@ -13,8 +13,8 @@ import CommandTypes from "../../base/enums/CommandType";
 export default class GetSchedule extends Command {
   constructor(client: CustomClient) {
     super(client, {
-      name: "get",
-      description: "Get NBA content.",
+      name: "",
+      description: "",
       type: CommandTypes.Command,
       default_member_permissions: PermissionsBitField.Flags.SendMessages,
       category: Category.Nba,
@@ -24,8 +24,8 @@ export default class GetSchedule extends Command {
       deprecated: false,
       options: [
         {
-          name: "schedule",
-          description: "Get a 7 day schedule of the NBA.",
+          name: "",
+          description: "",
           type: ApplicationCommandOptionType.SubcommandGroup,
           options: new ScheduleCommandGroup(client).options,
         },
@@ -38,7 +38,7 @@ export default class GetSchedule extends Command {
 
     // Delegation to subcommand groups or subcommands
     const subCommandGroup = interaction.options.getSubcommandGroup(false);
-    if (subCommandGroup === "schedule") {
+    if (subCommandGroup === "") {
       await new ScheduleCommandGroup(this.client).Execute(interaction);
     }
   }

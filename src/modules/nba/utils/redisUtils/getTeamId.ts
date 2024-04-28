@@ -1,5 +1,5 @@
-import redisClient from "../../../config/redisClient"; // Adjust the import path as needed
-import Team from "../models/Team"; // Adjust the import path to your Mongoose model
+import redisClient from "../../../../config/redisClient"; // Adjust the import path as needed
+import Team from "../../models/Team"; // Adjust the import path to your Mongoose model
 
 export async function getTeamId(teamName: string): Promise<string | null> {
   const cacheKey = `teamId:${teamName.toLowerCase()}`;

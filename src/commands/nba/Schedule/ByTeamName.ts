@@ -7,7 +7,7 @@ import {
   EmbedBuilder,
   PermissionsBitField,
 } from "discord.js";
-import { getTeamId } from "../../../modules/nba/utils/getTeamId";
+import { getTeamId } from "../../../modules/nba/utils/redisUtils/getTeamId";
 import { respondToInteraction } from "../../../base/functions/respondToInteraction";
 import { getGames } from "../../../modules/nba/data/BDL/endpoints";
 import { getEventId } from "../../../modules/nba/data/SportsDB/endpoints/getEventId";

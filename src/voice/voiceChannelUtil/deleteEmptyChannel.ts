@@ -2,7 +2,6 @@ import { VoiceChannel, TextChannel, inlineCode } from "discord.js";
 import GuildInformation from "../../base/schemas/GuildInformation";
 import CustomClient from "../../base/classes/CustomClient";
 import { logMessage } from "../../base/functions/sendEmbed";
-import { findCbopRole } from "../../base/functions/findCbopRole";
 
 /**
  * Deletes a temporary channel if it is empty and logs the action to a specified log channel within the guild.
@@ -26,7 +25,6 @@ export async function deleteChannelIfEmpty(
   }
 
   // Declaring cbopRoleMention at the top to use throughout the function
-  const cbopRoleMention = await findCbopRole(guild);
   const channel = await guild.channels.fetch(channelId);
   const channelName = (channel as VoiceChannel).name;
 

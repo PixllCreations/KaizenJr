@@ -6,6 +6,7 @@ export interface ITeam {
   name: string;
   full_name: string;
   abbreviation: string;
+  emote?: string;
 }
 
 export interface ITeamApiResponse {

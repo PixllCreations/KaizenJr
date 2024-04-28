@@ -7,6 +7,8 @@ import IResult from "../interfaces/IResult";
 import { formatPlayerStats } from "./formatBoxScores";
 import { findTopPerformers } from "./Impactfulness";
 import { getGameStats } from "../utils/getGameStats";
+import { getTeamEmote } from "../utils/redisUtils/teamEmotes";
+import redisClient from "../../../config/redisClient";
 
 export async function checkCloseGame(game: IGame): Promise<IResult> {
   const statusData = extractTimeIfUtc(game.status);
@@ -90,20 +92,31 @@ export async function checkCloseGame(game: IGame): Promise<IResult> {
             gameStats,
             3
           );
+
+          const homeTeamIcon = await getTeamEmote(
+            redisClient,
+            game.home_team.id
+          );
+
+          const awayTeamIcon = await getTeamEmote(
+            redisClient,
+            game.visitor_team.id
+          );
+
           const homeTeamField: APIEmbedField = {
-            name: "Home Team",
+            name: `${homeTeamIcon}  ${game.home_team.name}`,
             value: topHomePerformers.map(formatPlayerStats).join("\n\n"),
             inline: true,
           };
           const visitorTeamField: APIEmbedField = {
-            name: "Visitor Team",
+            name: `${awayTeamIcon}  ${game.visitor_team.name}`,
             value: topVisitorPerformers.map(formatPlayerStats).join("\n\n"),
             inline: true,
           };
 
           embed.setDescription(eventDescription);
           embed.setTitle(
-            `${game.home_team.name} vs ${game.visitor_team.name} is close!.`
+            `${game.home_team.full_name}   ${homeTeamIcon}   vs   ${awayTeamIcon}   ${game.visitor_team.full_name} is close!.`
           );
           console.log(`Embed description set.`);
 

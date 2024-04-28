@@ -2,14 +2,13 @@
 import { ApplicationCommandOptionType } from "discord.js";
 import CustomClient from "../../../base/classes/CustomClient";
 import SubCommandGroup from "../../../base/classes/SubCommandGroup";
-import ByTeamName from "./ByTeamName";
-import ByDate from "./ByDate";
-
-export default class ScheduleCommandGroup extends SubCommandGroup {
+import Update from "./Update";
+import Refresh from "./Refresh";
+export default class TeamEmoteCommandGroup extends SubCommandGroup {
   constructor(client: CustomClient) {
-    super(client, "get");
-    this.registerSubCommand(new ByTeamName(client));
-    this.registerSubCommand(new ByDate(client));
+    super(client, "emote");
+    this.registerSubCommand(new Update(client));
+    this.registerSubCommand(new Refresh(client));
   }
 
   // Optional: Define specific options if needed for the interaction response

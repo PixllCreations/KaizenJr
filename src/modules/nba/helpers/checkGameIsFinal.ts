@@ -8,6 +8,8 @@ import { IBoxScorePlayer, IBoxScoreStats } from "../interfaces/IBoxScore";
 import { findTopPerformers } from "./Impactfulness";
 import { formatPlayerStats } from "./formatBoxScores";
 import { getGameStats } from "../utils/getGameStats";
+import redisClient from "../../../config/redisClient";
+import { getTeamEmote } from "../utils/redisUtils/teamEmotes";
 
 export async function checkGameIsFinal(game: IGame): Promise<IResult> {
   console.log("Checking for if the game has finalized...");
@@ -16,7 +18,7 @@ export async function checkGameIsFinal(game: IGame): Promise<IResult> {
 
   // Check if the game is already finalized and missed due to null game.time
   if (game.status === "Final") {
-    const eventDescription = `**Final Score:** ${game.home_team_score} - ${game.visitor_team_score}`;
+    const eventDescription = `\n**Final Score:** ${game.home_team_score} - ${game.visitor_team_score}\n\n`;
     const eventId = "Game Has Ended";
 
     // console.log(
@@ -55,21 +57,29 @@ export async function checkGameIsFinal(game: IGame): Promise<IResult> {
           gameStats,
           3
         );
+        const homeTeamIcon = await getTeamEmote(redisClient, game.home_team.id);
+
+        const awayTeamIcon = await getTeamEmote(
+          redisClient,
+          game.visitor_team.id
+        );
+
         const homeTeamField: APIEmbedField = {
-          name: "Home Team",
+          name: `${homeTeamIcon}  ${game.home_team.name}`,
           value: topHomePerformers.map(formatPlayerStats).join("\n\n"),
           inline: true,
         };
         const visitorTeamField: APIEmbedField = {
-          name: "Visitor Team",
+          name: `${awayTeamIcon}  ${game.visitor_team.name}`,
           value: topVisitorPerformers.map(formatPlayerStats).join("\n\n"),
           inline: true,
         };
 
         embed.setDescription(eventDescription);
         embed.setTitle(
-          `${game.home_team.name} vs ${game.visitor_team.name} has ended.`
+          `${game.home_team.abbreviation} ${game.home_team.name}   ${homeTeamIcon}   VS   ${awayTeamIcon}   ${game.visitor_team.abbreviation} ${game.visitor_team.name} has ended.`
         );
+        embed.addFields({ name: "\u00A0", value: "\u00A0", inline: false });
         // console.log(`Embed description set.`);
 
         // Display box score data in embed

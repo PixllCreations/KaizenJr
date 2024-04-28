@@ -32,7 +32,7 @@ export default class Handler implements IHandler {
       path.resolve(filePath)
     );
 
-    files.map(async (file: string) => {
+    for (const file of files) {
       const event: Event = new (await import(file)).default(this.client);
 
       if (!event.name) {
@@ -52,7 +52,7 @@ export default class Handler implements IHandler {
       }
 
       delete require.cache[require.resolve(file)];
-    });
+    }
   }
 
   /**
@@ -64,25 +64,29 @@ export default class Handler implements IHandler {
       path.resolve(filePath)
     );
 
-    files.forEach(async (file) => {
-      const commandModule = await import(file);
-      if (!commandModule.default || !commandModule.default.name) {
-        console.error(`The command in ${file} does not export correctly.`);
-        return;
-      }
+    for (const file of files) {
+      try {
+        const commandModule = await import(file);
+        if (!commandModule.default || !commandModule.default.name) {
+          console.error(`The command in ${file} does not export correctly.`);
+          return;
+        }
 
-      const command = new commandModule.default(this.client);
-      if (command.type === CommandTypes.Command) {
-        this.client.commands.set(command.name, command);
-      } else if (
-        command.type === CommandTypes.SubCommand ||
-        command.type === CommandTypes.SubCommandGroup
-      ) {
-        this.client.subCommands.set(command.name, command);
-      } else {
-        console.error(`Unknown command type for command ${command.name}`);
+        const command = new commandModule.default(this.client);
+        if (command.type === CommandTypes.Command) {
+          this.client.commands.set(command.name, command);
+        } else if (
+          command.type === CommandTypes.SubCommand ||
+          command.type === CommandTypes.SubCommandGroup
+        ) {
+          this.client.subCommands.set(command.name, command);
+        } else {
+          console.error(`Unknown command type for command ${command.name}`);
+        }
+        delete require.cache[require.resolve(file)];
+      } catch (error) {
+        console.error(`Error loading command from ${file}:`, error);
       }
-      delete require.cache[require.resolve(file)];
-    });
+    }
   }
 }

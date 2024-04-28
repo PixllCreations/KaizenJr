@@ -15,6 +15,8 @@ import { getStreams } from "../../../modules/nba/data/SportsDB/endpoints/getStre
 import { getEventId } from "../../../modules/nba/data/SportsDB/endpoints/getEventId";
 import CommandTypes from "../../../base/enums/CommandType";
 import { getLocalDate } from "../../../base/functions/getLocalDate";
+import { getTeamEmote } from "../../../modules/nba/utils/redisUtils/teamEmotes";
+import redisClient from "../../../config/redisClient";
 
 export default class ByDate extends SubCommand {
   constructor(client: CustomClient) {
@@ -61,7 +63,14 @@ export default class ByDate extends SubCommand {
 
     // Iterate over each game to add details
     for (const game of games) {
-      const gameTitle = `${game.home_team.name} vs ${game.visitor_team.name}`; // Matchup
+      const homeTeamIcon = await getTeamEmote(redisClient, game.home_team.id);
+
+      const awayTeamIcon = await getTeamEmote(
+        redisClient,
+        game.visitor_team.id
+      );
+
+      const gameTitle = `${game.home_team.name}   ${homeTeamIcon}   VS   ${awayTeamIcon}   ${game.visitor_team.name}`; // Matchup
       const idEvent = await getEventId(
         game.home_team.full_name,
         game.visitor_team.full_name,
@@ -70,7 +79,7 @@ export default class ByDate extends SubCommand {
       // Fetch streams
       const streams = await getStreams(idEvent); // Assuming each game object has an idEvent field
 
-      console.log(streams);
+      // console.log(streams);
 
       let streamsField = streams.map((stream) => `${stream.emote}`).join(", ");
       streamsField =

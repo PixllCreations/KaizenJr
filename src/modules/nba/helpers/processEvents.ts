@@ -12,6 +12,7 @@ export async function processEvent(
 ) {
   const eventId = result.eventId;
   const embed = result.embed;
+  const components = result.components;
   const eventKey = `game:${game.id}:event:${eventId}`;
   const isEventProcessed = await redisClient.get(eventKey);
 
@@ -20,7 +21,13 @@ export async function processEvent(
 
     if (embed && eventId) {
       if (channel && channel.isTextBased()) {
-        channel.send({ embeds: [embed] });
+        const serializedComponents =
+          result.components?.map((component) => component.toJSON()) ?? [];
+        channel.send({
+          embeds: [embed],
+          components:
+            serializedComponents.length > 0 ? serializedComponents : [],
+        });
         console.log(`${eventId} message sent to channel`);
       }
 

@@ -8,7 +8,6 @@ import CustomClient from "../../base/classes/CustomClient";
 import GuildInformation from "../../base/schemas/GuildInformation";
 import { hasPermissions } from "../../base/functions/hasPermissions";
 import { logMessage } from "../../base/functions/sendEmbed";
-import { findCbopRole } from "../../base/functions/findCbopRole";
 
 /**
  * Handles the logic when a user joins a voice channel, specifically creating a temporary channel if they join a J2C (Join to Create) channel.
@@ -23,7 +22,6 @@ export const handleJoin = async (
   newState: VoiceState,
   client: CustomClient
 ) => {
-  const cbopRoleMention = await findCbopRole(newState.guild);
   // Ensure the user joined a valid J2C channel
   const channel = newState.channel as VoiceChannel;
   if (!channel || !channel.name.includes("(J2C)")) {
