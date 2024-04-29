@@ -10,6 +10,12 @@ import { getGameStats } from "../utils/getGameStats";
 import { getTeamEmote } from "../utils/redisUtils/teamEmotes";
 import redisClient from "../../../config/redisClient";
 
+/**
+ * Checks if the game is close in the last minutes and builds an embed message.
+ * @param {IGame} game - Game object containing all game data.
+ * @returns {Promise<IResult>} - Result containing event occurrence and embed if applicable.
+ */
+
 export async function checkCloseGame(game: IGame): Promise<IResult> {
   const statusData = extractTimeIfUtc(game.status);
   console.log(statusData);
@@ -60,10 +66,11 @@ export async function checkCloseGame(game: IGame): Promise<IResult> {
       console.log(`${minutes}:${seconds}`);
       console.log(`Score difference: ${scoreDiff}`);
 
-      // Check if the time is between 5:00 and 0:00 and the score difference is 25 or less
+      // Check if the time is between 5:00 and 0:00 and the score difference is 10 or less
       if (
-        (quarter === 4 && minutes < 5) ||
-        (minutes === 5 && seconds === 0 && scoreDiff <= 40)
+        quarter === 4 &&
+        scoreDiff <= 10 &&
+        (minutes < 5 || (minutes === 5 && seconds === 0))
       ) {
         console.log(
           "Triggering close game event with less than 5 minutes left"

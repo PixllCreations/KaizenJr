@@ -1,4 +1,5 @@
 import { IBoxScoreStats } from "../interfaces/IBoxScore";
+import { getGameStats } from "../utils/getGameStats";
 
 export function calculateImpact(
   playerStats: IBoxScoreStats,
@@ -61,4 +62,15 @@ export function findTopPerformers(
   const topPerformers = sortedPlayers.slice(0, count);
 
   return topPerformers.map((performer) => performer.player);
+}
+
+export function buildBoxscoreField(boxScores: IBoxScoreStats[][]) {
+  const allHomePlayers = [...boxScores[0]];
+  const allVisitorPlayers = [...boxScores[1]];
+  const allPlayers = [...allHomePlayers, ...allVisitorPlayers];
+  const gameStats = getGameStats(allPlayers);
+  const home = findTopPerformers(allHomePlayers, gameStats, 3);
+  const away = findTopPerformers(allVisitorPlayers, gameStats, 3);
+
+  return { home, away };
 }

@@ -1,0 +1,91 @@
+import IGame from "../interfaces/IGame";
+import { extractTimeIfUtc } from "../utils/extractTimeIfUtc";
+import getTimeToStart from "../utils/timeToStart";
+import IResult from "../interfaces/IResult";
+import { getStreams } from "../data/SportsDB/endpoints/getStreams";
+import { getEventId } from "../data/SportsDB/endpoints/getEventId";
+import { getUnixTime } from "date-fns";
+import { buildGameStartEmbed } from "../utils/buildGameStartEmbed";
+
+export async function checkGameToStart(
+  currentGame: IGame,
+  previousGameState: IGame,
+  date: string
+): Promise<IResult> {
+  const startTime = extractTimeIfUtc(currentGame.status);
+
+  // console.log(`Start Time: ${startTime}`);
+
+  if (!startTime) {
+    console.log(
+      "Game status is not in UTC format. Game must be live. Skipping game start check."
+    );
+    return { occurred: false };
+  }
+  console.log(`Executing check for games to start events`);
+
+  const timeDifference = getTimeToStart(startTime); // Time difference in milliseconds
+
+  // Convert time difference from milliseconds to hours and minutes
+  console.log(
+    `Time until game start: ${Math.floor(
+      timeDifference / 3600000
+    )} hours and ${Math.floor((timeDifference % 3600000) / 60000)} minutes`
+  );
+
+  let eventDescription = "";
+  let eventId = "";
+
+  // Calculate unix start time to make use of Discords unix time stamps
+  const unixStartTime = getUnixTime(startTime);
+
+  // Check if the game has just started
+  if (currentGame.period === 1 && previousGameState.period === 0) {
+    eventDescription = "Game has begun!";
+    eventId = "Game Start";
+  }
+  // Announce game is starting soon
+  else if (timeDifference <= 0 && currentGame.time === null) {
+    eventDescription = `Starting soon!`;
+    eventId = "Game Start Soon";
+  }
+  // Announce time until game start
+  else if (timeDifference <= 15 * 60 * 1000 && timeDifference) {
+    // 15 minutes
+    eventDescription = `Starts <t:${unixStartTime}:R> - <t:${unixStartTime}:t>`;
+    eventId = "Starting in 15";
+  } else if (timeDifference <= 60 * 60 * 1000) {
+    // 1 hour
+    eventDescription = `Starts <t:${unixStartTime}:R> - <t:${unixStartTime}:t>`;
+    eventId = "Starting in 60";
+  } else if (timeDifference <= 180 * 60 * 1000) {
+    // 3 hours
+    eventDescription = `Starts <t:${unixStartTime}:R> - <t:${unixStartTime}:t>`;
+    eventId = "Starting in 180";
+  } else {
+    // If none of the above, no upcoming start event within 3 hours
+    return { occurred: false };
+  }
+
+  // If we set an event description, set the embed and return it
+  if (eventDescription && eventDescription !== "") {
+    // Fetch streams
+    const idEvent = await getEventId(
+      currentGame.home_team.full_name,
+      currentGame.visitor_team.full_name,
+      date
+    );
+    const streams = await getStreams(idEvent);
+
+    const result = buildGameStartEmbed(
+      currentGame,
+      eventDescription,
+      unixStartTime,
+      eventId,
+      streams
+    );
+
+    return result;
+  }
+  return { occurred: false };
+}

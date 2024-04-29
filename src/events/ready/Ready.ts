@@ -16,15 +16,14 @@ import cron from "node-cron";
 import { initializeDatabaseWithGuildsAndJ2CChannels } from "../../base/functions/initializeDatabase";
 import { getGames } from "../../modules/nba/data/BDL/endpoints";
 import { getLocalDate } from "../../base/functions/getLocalDate";
-import IGame from "../../modules/nba/interfaces/IGame";
-import { checkGameEvents } from "../../modules/nba/helpers/checkGameEvents";
-import Games from "../../modules/nba/models/Game";
 import redisClient from "../../config/redisClient";
-import { processAndSaveGameData } from "../../modules/nba/utils/saveGame";
-import { checkGameToStart } from "../../modules/nba/helpers/checkGameStartEvents";
 import { processEvent } from "../../modules/nba/helpers/processEvents";
-import { checkGameIsFinal } from "../../modules/nba/helpers/checkGameIsFinal";
-import { checkCloseGame } from "../../modules/nba/helpers/checkCloseGame";
+import {
+  checkCloseGame,
+  checkGameEvents,
+  checkGameIsFinal,
+  checkGameToStart,
+} from "../../modules/nba/helpers/gameEventChecks";
 import { cacheTeamEmotes } from "../../modules/nba/utils/redisUtils/teamEmotes";
 
 export default class Ready extends Event {
@@ -62,6 +61,7 @@ export default class Ready extends Event {
             let previousGameState = previousGame
               ? JSON.parse(previousGame)
               : null;
+            console.log(previousGameState);
 
             if (!previousGameState) {
               console.log(

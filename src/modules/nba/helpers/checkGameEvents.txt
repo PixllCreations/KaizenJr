@@ -1,0 +1,69 @@
+import { getLiveBoxScores } from "../data/BDL/endpoints/boxscores/liveBoxScores";
+import IGame from "../interfaces/IGame";
+import { extractTimeIfUtc } from "../utils/extractTimeIfUtc";
+import { extractBoxScoreData } from "./extractBoxScoreData";
+import IResult from "../interfaces/IResult";
+import { buildGameEventEmbed } from "../utils/formatGameEmbed";
+
+export async function checkGameEvents(game: IGame): Promise<IResult> {
+  const timeData = extractTimeIfUtc(game.status);
+  // console.log(timeData);
+  // console.log(`Time data: ${timeData}`);
+
+  console.log("Checking for game events...");
+
+  if (!timeData || timeData === null) {
+    // Fetch live box scores
+    const liveBoxScores = await getLiveBoxScores();
+
+    if (!liveBoxScores) {
+      console.error("No live box scores found");
+      return { occurred: false };
+    }
+
+    const boxScores = await extractBoxScoreData(liveBoxScores, game);
+
+    let eventDescription;
+    let eventId;
+
+    // Check for end of each quarter or halftime
+    switch (game.time) {
+      case "END Q1":
+        eventDescription = `** End of 1st Quarter ** \n ** Score: ${game.home_team_score} - ${game.visitor_team_score} **`;
+        eventId = "End of 1st Quarter!";
+        break;
+      case "Half":
+        eventDescription = `** Halftime \n Score: ${game.home_team_score} - ${game.visitor_team_score} **`;
+        eventId = "Halftime!";
+        break;
+      case "END Q3":
+        eventDescription = `** End of 3rd Quarter ** \n ** Score: ${game.home_team_score} - ${game.visitor_team_score} **`;
+        eventId = "End of 3rd Quarter!";
+        break;
+      case "END Q4":
+        eventDescription = `** End of 4th Quarter ** \n ** Final Score: ${game.home_team_score} - ${game.visitor_team_score} **`;
+        eventId = "End of 4th Quarter!";
+        break;
+      case "OT":
+        eventDescription = `** Going into Overtime ** \n ** Score: ${game.home_team_score} - ${game.visitor_team_score} **`;
+        eventId = "is Going Into OT!";
+        break;
+    }
+
+    if (eventDescription && eventDescription !== "" && eventId) {
+      if (Array.isArray(boxScores)) {
+        const result = buildGameEventEmbed(
+          game,
+          boxScores,
+          eventId,
+          eventDescription,
+          `${eventId}`
+        );
+        return result;
+      } else {
+        console.error("Error fetching box scores:", boxScores);
+      }
+    }
+  }
+  return { occurred: false };
+}
