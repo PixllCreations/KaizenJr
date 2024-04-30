@@ -12,7 +12,6 @@ import { IStreamListEntry } from "../data/SportsDB/endpoints/interfaces/IStreamL
 export async function buildGameStartEmbed(
   game: IGame,
   eventDescription: string,
-  unixStartTime: number,
   eventId: string,
   streams: IStreamListEntry[]
 ) {
