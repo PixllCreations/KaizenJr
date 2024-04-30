@@ -48,7 +48,7 @@ export async function buildGameEventEmbed(
     .setColor("Blurple")
     .setTimestamp()
     .setDescription(eventDescription)
-    .setTitle(`${await formatGameTitle(game)} ${endTitle}`)
+    .setTitle(`${await formatGameTitle(game)}`)
     .addFields(homeTeamField, visitorTeamField);
 
   return { occurred: true, eventDescription, eventId, embed };

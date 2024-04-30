@@ -6,7 +6,7 @@ import {
   EmbedBuilder,
 } from "discord.js";
 import IGame from "../interfaces/IGame";
-import { formatAbbrTitle, formatGameTitle } from "./formatGameEmbed";
+import { formatAbbrTitle, formatGameTitle } from "./buildGameEventEmbed";
 import { IStreamListEntry } from "../data/SportsDB/endpoints/interfaces/IStreamListEntry";
 
 export async function buildGameStartEmbed(

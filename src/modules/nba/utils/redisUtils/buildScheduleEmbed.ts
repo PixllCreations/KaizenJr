@@ -12,7 +12,7 @@ import {
   formatGameTitle,
   getGameClock,
   isTimeMatch,
-} from "../formatGameEmbed";
+} from "../buildGameEventEmbed";
 import { getEventId } from "../../data/SportsDB/endpoints/getEventId";
 import { getStreams } from "../../data/SportsDB/endpoints/getStreams";
 import { getUnixTime } from "date-fns";

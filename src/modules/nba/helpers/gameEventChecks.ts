@@ -10,7 +10,7 @@ import {
   getScoreDifferential,
   isGameClose,
   isTimeMatch,
-} from "../utils/formatGameEmbed";
+} from "../utils/buildGameEventEmbed";
 import { buildGameStartEmbed } from "../utils/buildGameStartEmbed";
 import { getStreams } from "../data/SportsDB/endpoints/getStreams";
 import { getEventId } from "../data/SportsDB/endpoints/getEventId";
@@ -92,7 +92,6 @@ export async function checkGameToStart(
     const result = buildGameStartEmbed(
       currentGame,
       eventDescription,
-      unixStartTime,
       eventId,
       streams
     );
@@ -154,9 +153,8 @@ export async function checkGameEvents(game: IGame): Promise<IResult> {
         const result = buildGameEventEmbed(
           game,
           boxScores,
-          eventId,
           eventDescription,
-          `${eventId}`
+          eventId
         );
         return result;
       } else {
@@ -244,8 +242,7 @@ export async function checkCloseGame(game: IGame): Promise<IResult> {
             game,
             boxScores,
             eventDescription,
-            eventId,
-            `is Close!`
+            eventId
           );
           return result;
         }
@@ -289,8 +286,7 @@ export async function checkGameIsFinal(game: IGame): Promise<IResult> {
           game,
           boxScores,
           eventDescription,
-          eventId,
-          `has ended.`
+          eventId
         );
 
         return result;
