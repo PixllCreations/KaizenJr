@@ -24,8 +24,7 @@ export async function buildGameEventEmbed(
   game: IGame,
   boxScores: any,
   eventDescription: string,
-  eventId: string,
-  endTitle: string
+  eventId: string
 ) {
   const topPerformers = buildBoxscoreField(boxScores);
 
